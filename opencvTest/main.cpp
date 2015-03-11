@@ -17,7 +17,7 @@ void displayFeatures(Mat &frame, const vector<Rect> &rects, Point p=Point(0,0));
 void detectObject(ObjectDetector &od,Mat &frame);
 int main()
 {
-	int eye_close=0;
+	int eye_close=0,yawn=0;
 	HaarCascadeObjectDetector faceDetector(face_cascade);
 	HaarCascadeObjectDetector eyeDetector(eye_cascade);
 	HaarCascadeObjectDetector mouthDetector(mouth_cascade);
@@ -77,6 +77,19 @@ int main()
 	Mat mouthroi=(gray(lower_face))(mouths[0]);
 	yawn_area=getMaxArea(mouthroi);
 	cout<<"yawn area"<<yawn_area<<endl;
+	if(yawn_area>200)
+	{
+		yawn++;
+	}
+	else
+	{
+		yawn=0;
+	}
+	if(yawn>3)
+			{
+				cout<<"yawning";
+				yawn=0;
+			}
 
 	}
 
