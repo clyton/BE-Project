@@ -1,0 +1,64 @@
+#include "yawn.h"
+#include "HaarCascadeObjectDetector.h"
+
+#include<iostream>
+#include<stdio.h>
+
+using namespace cv;
+using namespace std;
+
+//global variables ______________________________________________
+string face_cascade="haarcascades/haarcascade_frontalface_alt.xml";
+string eye_cascade="haarcascades/haarcascade_eye_tree_eyeglasses.xml";
+string mouth_cascade="haarcascades/haarcascade_mcs_mouth.xml";
+// _______________________________________________________________
+
+void displayFeatures(Mat &frame, const vector<Rect> &rects);
+
+int main()
+{
+	HaarCascadeObjectDetector faceDetector(face_cascade);
+	HaarCascadeObjectDetector eyeDetector(eye_cascade);
+	HaarCascadeObjectDetector mouthDetector(mouth_cascade);
+	Mat src=imread("images/aloma1.jpg");
+
+	Mat gray;
+	cvtColor(src,gray,CV_BGR2GRAY);
+
+	//cv::equalizeHist(gray,gray);
+	vector<Rect> faces;
+	//faceDetector.setOptions(CV_HAAR_FIND_BIGGEST_OBJECT);
+	faceDetector.detect(gray,faces);
+	displayFeatures(src,faces);
+
+
+
+	vector<Rect> mouths;
+	int yawn_area=0;
+	mouthDetector.setOptions(CV_HAAR_FIND_BIGGEST_OBJECT);
+	//mouthDetector.setMinNeighbors(3);
+	if(mouthDetector.detect(gray,mouths))
+	{
+	Mat mouthroi=gray(mouths[0]);
+	yawn_area=getMaxArea(mouthroi);
+	displayFeatures(src,mouths);
+	cout<<"yawn area"<<yawn_area;
+	}
+
+	imshow("Image",src);
+	waitKey(0);
+
+
+}
+void displayFeatures(Mat &frame, const vector<Rect> &rects,Point offset=Point(0,0))
+{
+	Scalar red(255,0,0);
+	int thickness=3;
+	for(int i=0;i<rects.size();i++)
+	{
+		Rect rect(Point(rects[i].x+offset.x,rects[i].y+offset.y),Size(rects[i].width,rects[i].height));
+
+		cv::rectangle(frame,rect,red,thickness);
+
+	}
+}

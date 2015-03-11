@@ -1,0 +1,13 @@
+19:48:39 **** Incremental Build of configuration Release for project opencvTest ****
+Info: Internal Builder is used for build
+g++ "-IF:\\opencvInstaller\\opencv\\sources\\release\\install\\include" -O3 -Wall -c -fmessage-length=0 -o main.o "..\\main.cpp" 
+g++ "-LF:\\opencvInstaller\\opencv\\sources\\release\\lib" -o opencvTest.exe yawn.o main.o HaarCascadeObjectDetector.o -lopencv_highgui249 -lopencv_imgproc249 -lopencv_objdetect249 -lopencv_haartraining_engine -lopencv_core249 
+Info: Nothing to build for opencvTest
+20:32:07 **** Incremental Build of configuration Release for project opencvTest ****
+Info: Internal Builder is used for build
+g++ "-IF:\\opencvInstaller\\opencv\\sources\\release\\install\\include" -O3 -Wall -c -fmessage-length=0 -o main.o "..\\main.cpp" 
+..\main.cpp: In function 'int main()':
+..\main.cpp:20:6: warning: unused variable 'eye_close' [-Wunused-variable]
+  int eye_close=0;
+      ^
+g++ "-LF:\\opencvInstaller\\opencv\\sources\\release\\lib" -o opencvTest.exe yawn.o main.o HaarCascadeObjectDetector.o -lopencv_highgui249 -lopencv_imgproc249 -lopencv_objdetect249 -lopencv_haartraining_engine -lopencv_core249 
