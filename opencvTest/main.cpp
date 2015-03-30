@@ -36,9 +36,10 @@ int main()
 
 	}
 
-	Mat gray;
+	Mat gray,hsv;
 	cvtColor(src,gray,CV_BGR2GRAY);
-
+	/*cvtColor(src,hsv,CV_BGR2HSV);
+	imshow("hsv",hsv);*/
 	cv::equalizeHist(gray,gray);
 //__________________FACE___________________
 	vector<Rect> faces;
