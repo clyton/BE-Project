@@ -13,6 +13,7 @@ string eye_cascade="haarcascades/haarcascade_eye_tree_eyeglasses.xml";
 string mouth_cascade="haarcascades/haarcascade_mcs_mouth.xml";
 // _______________________________________________________________
 
+void highlightPixelChannel(Mat img,int channel=2);
 void displayFeatures(Mat &frame, const vector<Rect> &rects, Point p=Point(0,0));
 void detectObject(ObjectDetector &od,Mat &frame);
 int main()
@@ -38,7 +39,7 @@ int main()
 	Mat gray;
 	cvtColor(src,gray,CV_BGR2GRAY);
 
-	//cv::equalizeHist(gray,gray);
+	cv::equalizeHist(gray,gray);
 //__________________FACE___________________
 	vector<Rect> faces;
 	faceDetector.setOptions(CV_HAAR_FIND_BIGGEST_OBJECT);
@@ -66,6 +67,7 @@ int main()
 		}
 	}
 
+
 //__________________MOUTH____________________
 	vector<Rect> mouths;
 	int yawn_area=0;
@@ -76,6 +78,8 @@ int main()
 
 	Mat mouthroi=(gray(lower_face))(mouths[0]);
 	yawn_area=getMaxArea(mouthroi);
+	//Mat bgr_mouthroi=(src(lower_face))(mouths[0]);
+	//highlightPixelChannel(bgr_mouthroi);
 	cout<<"yawn area"<<yawn_area<<endl;
 	if(yawn_area>200)
 	{
@@ -95,7 +99,7 @@ int main()
 
 	}
 	imshow("Image",src);
-	int c=waitKey(0);
+	int c=waitKey(100);
 	if(c==27)
 	{
 		break;
@@ -114,5 +118,54 @@ void displayFeatures(Mat &frame, const vector<Rect> &rects,Point offset)
 
 		cv::rectangle(frame,rect,red,thickness);
 
+	}
+}
+
+/*
+ * void highlightPixelChannel(Mat img,int channel)
+ *
+ * INPUT PARAMETERS:
+ * channel - permissible values = [0,1,2] for [B,G,R] respectively
+ * img - The input image is a BGR three channel image.
+ *
+ * OUTPUT PARAMETERS:
+ * none
+ *
+ * DESCRIPTION :
+ * The pixel values of the 'channel' are compared with the other two
+ * channels.Those positions are highlighted where the 'channel' intensity
+ * is the greatest.
+ *
+ */
+
+void highlightPixelChannel(Mat img,int channel)
+{
+	int cn = img.channels();
+	Scalar_<uint8_t> bgrPixel;
+
+	for(int i = 0; i < img.rows; i++)
+	{
+	Mat foo=img.row(i);
+	    uint8_t* rowPtr = (uint8_t*)(foo.data);
+	    for(int j = 0; j < img.cols; j++)
+	    {
+	        bgrPixel.val[0] = rowPtr[j*cn + 0]; // B
+	        bgrPixel.val[1] = rowPtr[j*cn + 1]; // G
+	        bgrPixel.val[2] = rowPtr[j*cn + 2]; // R
+
+	        int greatest=0;
+	        for(int k=1;k<3;k++)
+	        {
+	        	if(bgrPixel.val[greatest]<bgrPixel.val[k])
+	        		greatest=k;
+	        }
+	        if(greatest==channel)
+	        {
+	        	rowPtr[j*cn + 0]=0;
+	        	rowPtr[j*cn + 1]=0;
+	        	rowPtr[j*cn + 2]=0;
+	        }
+
+	    }
 	}
 }

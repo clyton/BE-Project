@@ -1,7 +1,1 @@
-23:22:08 **** Incremental Build of configuration Release for project opencvTest ****
-Info: Internal Builder is used for build
-g++ "-IF:\\opencvInstaller\\opencv\\sources\\release\\install\\include" -O3 -Wall -c -fmessage-length=0 -o main.o "..\\main.cpp" 
-g++ "-LF:\\opencvInstaller\\opencv\\sources\\release\\lib" -o opencvTest.exe yawn.o main.o HaarCascadeObjectDetector.o -lopencv_highgui249 -lopencv_imgproc249 -lopencv_objdetect249 -lopencv_haartraining_engine -lopencv_core249 
-
-23:22:10 Build Finished (took 1s.513ms)
-
+Info: Nothing to build for opencvTest
