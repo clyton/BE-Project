@@ -56,14 +56,11 @@ int initAll()
 
 	cap.open(web_cam);
 
-	while(!cap.isOpened())
+	if(!cap.isOpened())
 	{
-		cerr<<"waiting";
-		cout<<"Waiting for webcam to open";
-		cout.flush();
 		//wait
-		/*cout<<"Web Cam initialisation failed.";
-		return 0;*/
+		cout<<"Web Cam initialisation failed.";
+		return 0;
 	}
 
 	//read the next video frame
@@ -72,7 +69,6 @@ int initAll()
 	if(videoFrame.empty())
 	{
 		cout<<"End Of Frame!!";
-		cout.flush();
 		return 0;
 
 	}
@@ -137,7 +133,7 @@ bool detectFeatures()
 
 		//extract lower face region
 		lower_face = face_roi(Range(mid_row,end_row),Range::all());
-imshow("lowface",lower_face);
+		imshow("lowface",lower_face);
 		lowerFaceOffset=new Point2i(faceRect.x,faceRect.y+mid_row);
 
 
@@ -165,7 +161,8 @@ void capNextFrame()
 void displayFeatures(Mat &frame , Rect fetRect , Scalar color=CV_RGB(255,0,0))
 {
 
-		if(fetRect.area()!=0)
+
+	if(fetRect.area()!=0)
 		{
 			int thickness=3;
 			cv::rectangle(frame, fetRect, color, thickness);
@@ -173,8 +170,43 @@ void displayFeatures(Mat &frame , Rect fetRect , Scalar color=CV_RGB(255,0,0))
 
 
 }
+
+
+
+void startTrackers()
+{
+	faceTracker.startTracking(videoFrame,faceRect);
+	l_eyeTracker.startTracking(videoFrame,l_eyeRect);
+	r_eyeTracker.startTracking(videoFrame,r_eyeRect);
+	mouthTracker.startTracking(videoFrame,mouthRect);
+
+}
+
+
+vector<RotatedRect> & trackFeatures(){
+	vector<RotatedRect> ftrackingRects; //feature tracking rects
+	ftrackingRects._M_allocate(4);
+
+	RotatedRect rfaceRect=faceTracker.track(videoFrame);
+	RotatedRect rl_eyeRect=l_eyeTracker.track(videoFrame);
+	RotatedRect rr_eyefaceRect=r_eyeTracker.track(videoFrame);
+	RotatedRect rmouthRect=mouthTracker.track(videoFrame);
+
+	ftrackingRects.push_back(rfaceRect);
+	ftrackingRects.push_back(rl_eyeRect);
+	ftrackingRects.push_back(rr_eyefaceRect);
+	ftrackingRects.push_back(rmouthRect);
+
+
+	return ftrackingRects;
+}
+
 int main()
 {
+	vector<RotatedRect> ftrackingRects; //feature tracking rects
+
+
+
 	if(!initAll())
 	{
 		cout<<"Exiting Program";
@@ -184,34 +216,46 @@ int main()
 	while(true)
 	{
 
-		capNextFrame();
+
 		if(!fet_det)
 		{
 
 			fet_det	=	detectFeatures();
 
+			if(fet_det) //all features detected
+					{
+						startTrackers();
+					}
+
+			displayFeatures(videoFrame,faceRect,CV_RGB(255,0,0));
+			displayFeatures(videoFrame,l_eyeRect,CV_RGB(0,255,0));
+			displayFeatures(videoFrame,r_eyeRect,CV_RGB(0,255,0));
+			displayFeatures(videoFrame,mouthRect,CV_RGB(0,0,255));
+
+			faceRect.height  = faceRect.width=0;
+			l_eyeRect.height = l_eyeRect.width=0;
+			r_eyeRect.height = r_eyeRect.width=0;
+			mouthRect.height = mouthRect.width=0;
+
+
 		}
-		else
+
+
+		capNextFrame();
+
+		if(fet_det)
 		{
-			waitKey(0);
-			//if( ! trackFeatures() ) fet_det=false;
+			ftrackingRects=trackFeatures();
+			displayFeatures(ftrackingRects);
+
 		}
 
-
-		displayFeatures(videoFrame,faceRect,CV_RGB(255,0,0));
-		displayFeatures(videoFrame,l_eyeRect,CV_RGB(0,255,0));
-		displayFeatures(videoFrame,r_eyeRect,CV_RGB(0,255,0));
-		displayFeatures(videoFrame,mouthRect,CV_RGB(0,0,255));
 
 		imshow(DISPLAY_WINDOW,videoFrame);
 
 		int key=waitKey(100);
 		if(key==27)	break;
 
-		faceRect.height  = faceRect.width=0;
-		l_eyeRect.height = l_eyeRect.width=0;
-		r_eyeRect.height = r_eyeRect.width=0;
-		mouthRect.height = mouthRect.width=0;
 
 	}
 	exitProgram(1);
