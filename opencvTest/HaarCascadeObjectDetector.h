@@ -17,7 +17,7 @@
 #define DEFAULT_SEARCH_SCALE  1.3
 #define DEFAULT_SCALE_FACTOR  1.1
 #define DEFAULT_MIN_NEIGHBORS 2
-#define DEFAULT_OPTS          CV_HAAR_SCALE_IMAGE
+#define DEFAULT_OPTS          CV_HAAR_FIND_BIGGEST_OBJECT
 #define DEFAULT_MIN_SIZE      cv::Size(30, 30)
 
 class HaarCascadeObjectDetector : public ObjectDetector

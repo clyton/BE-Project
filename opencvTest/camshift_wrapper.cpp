@@ -6,38 +6,52 @@
  */
 
 #include "opencv/cv.h"
+#include "opencv2/core/core.hpp"
 #include <stdio.h>
 #include "camshift_wrapper.h"
 
 
-// Parameters
-int   nHistBins = 30;                 // number of histogram bins
-float rangesArr[] = {0,180};          // histogram range
-int vmin = 65, vmax = 256, smin = 55; // limits for calculating hue
+//////////////////////////////////
+// Tracker()
+// Constructor
+Tracker::Tracker()
+	{
+		rangesArr[0]=0; rangesArr[1]=180;
+		nHistBins = 30;                 // number of histogram bins
+		vmin = 60; vmax = 256; smin = 50; // limits for calculating hue
 
 
-// File-level variables
-IplImage * pHSVImg  = 0; // the input image converted to HSV color mode
-IplImage * pHueImg  = 0; // the Hue channel of the HSV image
-IplImage * pMask    = 0; // this image is used for masking pixels
-IplImage * pProbImg = 0; // the face probability estimates for each pixel
-CvHistogram * pHist = 0; // histogram of hue in the original face image
-
-CvRect prevFaceRect;  // location of face in previous frame
-CvBox2D faceBox;      // current face-location estimate
+			// File-level variables
+			pHSVImg  = 0; // the input image converted to HSV color mode
+			pHueImg  = 0; // the Hue channel of the HSV image
+			pMask    = 0; // this image is used for masking pixels
+			pProbImg = 0; // the face probability estimates for each pixel
+			pHist = 0; // histogram of hue in the original face image
 
 
-int nFrames = 0;
 
+			nFrames = 0;
 
-// Declarations for internal functions
-void updateHueImage(const IplImage * pImg);
-
+	}
 
 //////////////////////////////////
-// createTracker()
-//
-int createTracker(const IplImage * pImg)
+// ~Tracker()
+// Destructor
+Tracker::~Tracker()
+{
+	//do nothing;
+}
+
+
+int Tracker::createTracker(const Mat Img)
+{
+
+	IplImage dImg = Img;
+	IplImage * pImg=&dImg;
+	return createTracker(pImg);
+}
+
+int Tracker::createTracker(const IplImage * pImg)
 {
         // Allocate the main data structures ahead of time
         float * pRanges = rangesArr;
@@ -55,7 +69,7 @@ int createTracker(const IplImage * pImg)
 //////////////////////////////////
 // releaseTracker()
 //
-void releaseTracker()
+void Tracker::releaseTracker()
 {
         // Release all tracker resources
         cvReleaseImage( &pHSVImg );
@@ -66,10 +80,24 @@ void releaseTracker()
         cvReleaseHist( &pHist );
 }
 
+
+
+
+
 //////////////////////////////////
 // startTracking()
 //
-void startTracking(IplImage * pImg, CvRect * pFaceRect)
+void Tracker::startTracking(Mat Img, Rect pRect)
+ {
+
+	IplImage dImg = Img;
+	IplImage * pImg=&dImg;
+	CvRect * pFaceRect = new CvRect(pRect);
+
+	startTracking(pImg, pFaceRect);
+}
+
+void Tracker::startTracking(IplImage * pImg, CvRect * pFaceRect)
 {
         float maxVal = 0.f;
 
@@ -80,13 +108,13 @@ void startTracking(IplImage * pImg, CvRect * pFaceRect)
         updateHueImage(pImg);
 
         // Create a histogram representation for the face
-    cvSetImageROI( pHueImg, *pFaceRect );
-    cvSetImageROI( pMask,   *pFaceRect );
-    cvCalcHist( &pHueImg, pHist, 0, pMask );
-    cvGetMinMaxHistValue( pHist, 0, &maxVal, 0, 0 );
-    cvConvertScale( pHist->bins, pHist->bins, maxVal? 255.0/maxVal : 0, 0 );
-    cvResetImageROI( pHueImg );
-    cvResetImageROI( pMask );
+		cvSetImageROI( pHueImg, *pFaceRect );
+		cvSetImageROI( pMask,   *pFaceRect );
+		cvCalcHist( &pHueImg, pHist, 0, pMask );
+		cvGetMinMaxHistValue( pHist, 0, &maxVal, 0, 0 );
+		cvConvertScale( pHist->bins, pHist->bins, maxVal? 255.0/maxVal : 0, 0 );
+		cvResetImageROI( pHueImg );
+		cvResetImageROI( pMask );
 
         // Store the previous face location
         prevFaceRect = *pFaceRect;
@@ -96,7 +124,16 @@ void startTracking(IplImage * pImg, CvRect * pFaceRect)
 //////////////////////////////////
 // track()
 //
-CvBox2D track(IplImage * pImg)
+
+RotatedRect Tracker::track(Mat Img)
+{
+	IplImage dImg = Img;
+	IplImage * pImg=&dImg;
+	RotatedRect faceRect(track(pImg));
+	return faceRect;
+}
+
+CvBox2D Tracker::track(IplImage * pImg)
 {
         CvConnectedComp components;
 
@@ -123,7 +160,7 @@ CvBox2D track(IplImage * pImg)
 //////////////////////////////////
 // updateHueImage()
 //
-void updateHueImage(const IplImage * pImg)
+void Tracker::updateHueImage(const IplImage * pImg)
 {
         // Convert to HSV color model
         cvCvtColor( pImg, pHSVImg, CV_BGR2HSV );
@@ -140,12 +177,12 @@ void updateHueImage(const IplImage * pImg)
 //////////////////////////////////
 // setVmin()
 //
-void setVmin(int _vmin)
+void Tracker::setVmin(int _vmin)
 { vmin = _vmin; }
 
 
 //////////////////////////////////
 // setSmin()
 //
-void setSmin(int _smin)
+void Tracker::setSmin(int _smin)
 { smin = _smin; }

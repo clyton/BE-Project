@@ -1,5 +1,8 @@
+/*
+
 #include "yawn.h"
 #include "HaarCascadeObjectDetector.h"
+#include "camshift_wrapper.h"
 
 #include<iostream>
 #include<stdio.h>
@@ -7,122 +10,121 @@
 using namespace cv;
 using namespace std;
 
-//global variables ______________________________________________
-string face_cascade="haarcascades/haarcascade_frontalface_alt.xml";
-string eye_cascade="haarcascades/haarcascade_eye_tree_eyeglasses.xml";
-string mouth_cascade="haarcascades/haarcascade_mcs_mouth.xml";
-// _______________________________________________________________
+///
+//global variables //////////////////
+/////////////////////////////////////
+string face_cascade = "haarcascades/haarcascade_frontalface_alt.xml";
+string eye_cascade = "haarcascades/haarcascade_eye_tree_eyeglasses.xml";
+string mouth_cascade = "haarcascades/haarcascade_mcs_mouth.xml";
 
-void highlightPixelChannel(Mat img,int channel=2);
-void displayFeatures(Mat &frame, const vector<Rect> &rects, Point p=Point(0,0));
-void detectObject(ObjectDetector &od,Mat &frame);
-int main()
-{
-	int eye_close=0,yawn=0;
+///
+//helper function declaration //////////////////
+/////////////////////////////////////
+
+void highlightPixelChannel(Mat img, int channel = 2);
+
+void displayFeatures(Mat &frame, const vector<Rect> &rects,
+		Point p = Point(0, 0));
+
+///
+//main function //////////////////
+/////////////////////////////////////
+
+int main() {
+	int eye_close = 0, yawn = 0;
+
 	HaarCascadeObjectDetector faceDetector(face_cascade);
 	HaarCascadeObjectDetector eyeDetector(eye_cascade);
 	HaarCascadeObjectDetector mouthDetector(mouth_cascade);
 
 	VideoCapture cap(0);
-	while(cap.isOpened())
-	{
+	while (cap.isOpened()) {
 
-	Mat src;
-	cap>>src;
-	if(src.empty())
-	{
-		cout<<"Empty frame";
-		return 0;
+		Mat src;
+		cap >> src;
+		if (src.empty()) {
+			cout << "Empty frame";
+			return 0;
 
-	}
-
-	Mat gray,hsv;
-	cvtColor(src,gray,CV_BGR2GRAY);
-	/*cvtColor(src,hsv,CV_BGR2HSV);
-	imshow("hsv",hsv);*/
-	cv::equalizeHist(gray,gray);
-//__________________FACE___________________
-	vector<Rect> faces;
-	faceDetector.setOptions(CV_HAAR_FIND_BIGGEST_OBJECT);
-	if(faceDetector.detect(gray,faces))
-	{
-	displayFeatures(src,faces);
-
-	Rect face=faces[0];
-	Rect lower_face(face.x,face.y+0.70*face.height,face.width,face.height*0.40);
-	imshow("a",gray(lower_face));
-//___________________EYES__________________
-	vector<Rect> eyes;
-	if(eyeDetector.detect(gray(face),eyes))
-	{
-	displayFeatures(src,eyes,Point(face.x,face.y));
-	eye_close=0;
-	}
-	else
-	{
-		eye_close++;
-		if(eye_close==4)
-		{
-			cout<<"EYES CLOSED!!"<<endl;
-			eye_close=0;
 		}
-	}
 
+		Mat gray;
+		cvtColor(src, gray, CV_BGR2GRAY);
+		cv::equalizeHist(gray, gray);
+
+		//____________FACE___________________
+			vector<Rect> faces;
+			faceDetector.setOptions(CV_HAAR_FIND_BIGGEST_OBJECT);
+			if ( faceDetector.detect(gray, faces)) {
+				displayFeatures(src, faces);
+
+				Rect face = faces[0];
+				Rect lower_face(face.x, face.y + 0.70 * face.height, face.width,
+						face.height * 0.40);
+				imshow("a", gray(lower_face));
+//___________________EYES__________________
+				vector<Rect> eyes;
+				if ( eyeDetector.detect(gray(face), eyes)) {
+					displayFeatures(src, eyes, Point(face.x, face.y));
+					eye_close = 0;
+				} else {
+					eye_close++;
+					if (eye_close == 4) {
+						cout << "EYES CLOSED!!" << endl;
+						eye_close = 0;
+					}
+				}
 
 //__________________MOUTH____________________
-	vector<Rect> mouths;
-	int yawn_area=0;
-	mouthDetector.setOptions(CV_HAAR_FIND_BIGGEST_OBJECT);
-	if(mouthDetector.detect(gray(lower_face),mouths))
-	{
-	displayFeatures(src,mouths,Point(lower_face.x,lower_face.y));
+				vector<Rect> mouths;
+				int yawn_area = 0;
+				mouthDetector.setOptions(CV_HAAR_FIND_BIGGEST_OBJECT);
+				if ( mouthDetector.detect(gray(lower_face), mouths)) {
+					displayFeatures(src, mouths,
+							Point(lower_face.x, lower_face.y));
 
-	Mat mouthroi=(gray(lower_face))(mouths[0]);
-	yawn_area=getMaxArea(mouthroi);
-	//Mat bgr_mouthroi=(src(lower_face))(mouths[0]);
-	//highlightPixelChannel(bgr_mouthroi);
-	cout<<"yawn area"<<yawn_area<<endl;
-	if(yawn_area>200)
-	{
-		yawn++;
-	}
-	else
-	{
-		yawn=0;
-	}
-	if(yawn>3)
-			{
-				cout<<"yawning";
-				yawn=0;
+					Mat mouthroi = (gray(lower_face))(mouths[0]);
+					yawn_area = getMaxArea(mouthroi);
+					//Mat bgr_mouthroi=(src(lower_face))(mouths[0]);
+					//highlightPixelChannel(bgr_mouthroi);
+					cout << "yawn area" << yawn_area << endl;
+					if (yawn_area > 200) {
+						yawn++;
+					} else {
+						yawn = 0;
+					}
+					if (yawn > 3) {
+						cout << "yawning";
+						yawn = 0;
+					}
+
+				}
+
 			}
+			imshow("Image", src);
+					int c = waitKey(100);
+					if (c == 27) {
+						break;
+					}
 
-	}
+		}
 
-	}
-	imshow("Image",src);
-	int c=waitKey(100);
-	if(c==27)
-	{
-		break;
-	}
 
-	}
-return 0;
+	return 0;
 }
-void displayFeatures(Mat &frame, const vector<Rect> &rects,Point offset)
-{
-	Scalar red(0,0,255);
-	int thickness=3;
-	for(size_t i=0;i<rects.size();i++)
-	{
-		Rect rect(Point(rects[i].x+offset.x,rects[i].y+offset.y),Size(rects[i].width,rects[i].height));
+void displayFeatures(Mat &frame, const vector<Rect> &rects, Point offset) {
+	Scalar red(0, 0, 255);
+	int thickness = 3;
+	for (size_t i = 0; i < rects.size(); i++) {
+		Rect rect(Point(rects[i].x + offset.x, rects[i].y + offset.y),
+				Size(rects[i].width, rects[i].height));
 
-		cv::rectangle(frame,rect,red,thickness);
+		cv::rectangle(frame, rect, red, thickness);
 
 	}
 }
 
-/*
+
  * void highlightPixelChannel(Mat img,int channel)
  *
  * INPUT PARAMETERS:
@@ -137,36 +139,32 @@ void displayFeatures(Mat &frame, const vector<Rect> &rects,Point offset)
  * channels.Those positions are highlighted where the 'channel' intensity
  * is the greatest.
  *
- */
 
-void highlightPixelChannel(Mat img,int channel)
-{
+
+void highlightPixelChannel(Mat img, int channel) {
 	int cn = img.channels();
 	Scalar_<uint8_t> bgrPixel;
 
-	for(int i = 0; i < img.rows; i++)
-	{
-	Mat foo=img.row(i);
-	    uint8_t* rowPtr = (uint8_t*)(foo.data);
-	    for(int j = 0; j < img.cols; j++)
-	    {
-	        bgrPixel.val[0] = rowPtr[j*cn + 0]; // B
-	        bgrPixel.val[1] = rowPtr[j*cn + 1]; // G
-	        bgrPixel.val[2] = rowPtr[j*cn + 2]; // R
+	for (int i = 0; i < img.rows; i++) {
+		Mat foo = img.row(i);
+		uint8_t* rowPtr = (uint8_t*) (foo.data);
+		for (int j = 0; j < img.cols; j++) {
+			bgrPixel.val[0] = rowPtr[j * cn + 0]; // B
+			bgrPixel.val[1] = rowPtr[j * cn + 1]; // G
+			bgrPixel.val[2] = rowPtr[j * cn + 2]; // R
 
-	        int greatest=0;
-	        for(int k=1;k<3;k++)
-	        {
-	        	if(bgrPixel.val[greatest]<bgrPixel.val[k])
-	        		greatest=k;
-	        }
-	        if(greatest==channel)
-	        {
-	        	rowPtr[j*cn + 0]=0;
-	        	rowPtr[j*cn + 1]=0;
-	        	rowPtr[j*cn + 2]=0;
-	        }
+			int greatest = 0;
+			for (int k = 1; k < 3; k++) {
+				if (bgrPixel.val[greatest] < bgrPixel.val[k])
+					greatest = k;
+			}
+			if (greatest == channel) {
+				rowPtr[j * cn + 0] = 0;
+				rowPtr[j * cn + 1] = 0;
+				rowPtr[j * cn + 2] = 0;
+			}
 
-	    }
+		}
 	}
 }
+*/
