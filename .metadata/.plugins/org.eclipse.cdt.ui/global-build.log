@@ -1,0 +1,6 @@
+18:21:22 **** Incremental Build of configuration Release for project camshift ****
+Info: Internal Builder is used for build
+g++ "-IF:\\opencvInstaller\\opencv\\sources\\release\\install\\include" -O0 -g3 -Wall -c -fmessage-length=0 -o TrackFaces.o "..\\TrackFaces.cpp" 
+g++ "-LF:\\opencvInstaller\\opencv\\sources\\release\\lib" -o camshift.exe facedet.o capture.o camshift_wrapper.o TrackFaces.o -lopencv_core249 -lopencv_video249 -lopencv_highgui249 -lopencv_objdetect249 -lopencv_imgproc249 
+Info: Nothing to build for camshift
+Info: Nothing to build for camshift
