@@ -2,6 +2,14 @@
 Thumbs.db
 ehthumbs.db
 
+#Eclipse metadata files
+.metadata/
+
+#Eclipse target files
+*/Release/
+*/Debug/
+
+
 # Folder config file
 Desktop.ini
 

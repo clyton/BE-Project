@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;camshift/camshiftDemo&apos; to &apos;camshiftDemo.cpp&apos;" description="Rename resource &apos;camshiftDemo&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="camshiftDemo" name="camshiftDemo.cpp" stamp="1427713256773" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;camshift/camshiftwrapper.cpp&apos; to &apos;camshift_wrapper.cpp&apos;" description="Rename resource &apos;camshiftwrapper.cpp&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="camshiftwrapper.cpp" name="camshift_wrapper.cpp" stamp="1427717841791" updateReferences="true"/>
-</session>
