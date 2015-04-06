@@ -175,12 +175,15 @@ void displayFeatures(Mat &frame , Rect fetRect , Scalar color=CV_RGB(255,0,0))
 
 void displayFeatures(vector<RotatedRect> & rrect)
 {
-	Scalar color[]={CV_RGB(255,0,0),CV_RGB(0,255,0),CV_RGB(0,255,0),CV_RGB(0,0,255)};
+	//Scalar color[]={CV_RGB(255,0,0),CV_RGB(0,255,0),CV_RGB(0,255,0),CV_RGB(0,0,255)};
+Scalar red=CV_RGB(255,0,0);
 	int thickness=3;
 	//display the rotated rects as ellipse
 	for(size_t i=0;i<rrect.size();i++)
 	{
-		ellipse(videoFrame,rrect[i],color[i],thickness);
+
+		//Scalar c=color[i];
+		ellipse(videoFrame,rrect[i],red,thickness);
 
 	}
 }
@@ -259,9 +262,17 @@ int main()
 
 		if(fet_det)
 		{
+			try{
 			ftrackingRects=trackFeatures();
+
 			displayFeatures(ftrackingRects);
 			fet_track=true;
+			}catch(exception &e)
+			{
+				cout<<e.what();
+				fet_det=false;
+				fet_track=false;
+			}
 
 		}
 
