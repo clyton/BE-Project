@@ -100,7 +100,7 @@ bool detectFeatures()
 
 	det_fet = faceDetector.detect(grayFrame, roi);
 
-	cout<<"\n face detection over ? " <<det_fet ; cout.flush();
+
 	if( det_fet ) //face detected
 	{
 		faceRect=roi[0];
@@ -114,10 +114,10 @@ bool detectFeatures()
 
 
 	eyeDetector.setOptions(CV_HAAR_SCALE_IMAGE);
-	det_fet = 	det_fet 						  &
-				(eyeDetector.detect(face_roi,roi))&
-				(roi.size()==2);
-
+	det_fet = 	det_fet 						  &&
+				(eyeDetector.detect(face_roi,roi));//&
+				//(roi.size()==2);
+	det_fet = det_fet && (roi.size()==2);
 
 		l_eyeRect=roi[0] + *faceRectOffset;
 		r_eyeRect=roi[1] + *faceRectOffset;
@@ -139,7 +139,7 @@ bool detectFeatures()
 
 
 	//if face ,2 eyes and mouth detected in lower face region
-	det_fet = det_fet & mouthDetector.detect(lower_face,roi);
+	det_fet = det_fet && mouthDetector.detect(lower_face,roi);
 
 
 	mouthRect=roi[0]+ *lowerFaceOffset;
@@ -147,6 +147,7 @@ bool detectFeatures()
 	}
 /*det_fet = det_fet &&  l_eyeRect.x < mouthRect.x &&
 					  mouthRect.x < r_eyeRect.x+r_eyeRect.width;*/
+	cout<<"\n feat detection over ? " <<det_fet ; cout.flush();
 return det_fet;
 }
 
@@ -172,6 +173,17 @@ void displayFeatures(Mat &frame , Rect fetRect , Scalar color=CV_RGB(255,0,0))
 }
 
 
+void displayFeatures(vector<RotatedRect> & rrect)
+{
+	Scalar color[]={CV_RGB(255,0,0),CV_RGB(0,255,0),CV_RGB(0,255,0),CV_RGB(0,0,255)};
+	int thickness=3;
+	//display the rotated rects as ellipse
+	for(size_t i=0;i<rrect.size();i++)
+	{
+		ellipse(videoFrame,rrect[i],color[i],thickness);
+
+	}
+}
 
 void startTrackers()
 {
@@ -183,9 +195,8 @@ void startTrackers()
 }
 
 
-vector<RotatedRect> & trackFeatures(){
-	vector<RotatedRect> ftrackingRects; //feature tracking rects
-	ftrackingRects._M_allocate(4);
+vector<RotatedRect>  trackFeatures(){
+	vector<RotatedRect> ftrackingRects(4); //feature tracking rects
 
 	RotatedRect rfaceRect=faceTracker.track(videoFrame);
 	RotatedRect rl_eyeRect=l_eyeTracker.track(videoFrame);
@@ -212,7 +223,7 @@ int main()
 		cout<<"Exiting Program";
 		exitProgram(-1);
 	}
-	bool fet_det=false;
+	bool fet_det=false, fet_track=false;
 	while(true)
 	{
 
@@ -222,8 +233,9 @@ int main()
 
 			fet_det	=	detectFeatures();
 
-			if(fet_det) //all features detected
+			if(fet_det && !fet_track) //all features detected
 					{
+						cout<<"\n feature detected. Starting Tracking";
 						startTrackers();
 					}
 
@@ -240,6 +252,8 @@ int main()
 
 		}
 
+		imshow(DISPLAY_WINDOW,videoFrame);
+
 
 		capNextFrame();
 
@@ -247,11 +261,11 @@ int main()
 		{
 			ftrackingRects=trackFeatures();
 			displayFeatures(ftrackingRects);
+			fet_track=true;
 
 		}
 
 
-		imshow(DISPLAY_WINDOW,videoFrame);
 
 		int key=waitKey(100);
 		if(key==27)	break;
