@@ -22,15 +22,20 @@ const string DISPLAY_WINDOW = "SAFE DRIVE";
 string face_cascade = "haarcascades/haarcascade_frontalface_alt.xml";
 string eye_cascade = "haarcascades/haarcascade_eye_tree_eyeglasses.xml";
 string mouth_cascade = "haarcascades/haarcascade_mcs_mouth.xml";
+string nose_cascade = "haarcascades/haarcascade_mcs_nose.xml";
+
+
 HaarCascadeObjectDetector faceDetector(face_cascade);
 HaarCascadeObjectDetector eyeDetector(eye_cascade);
 HaarCascadeObjectDetector mouthDetector(mouth_cascade);
+HaarCascadeObjectDetector noseDetector(nose_cascade);
+
 Tracker faceTracker;
 Tracker l_eyeTracker;
 Tracker r_eyeTracker;
 Tracker mouthTracker;
 Mat videoFrame,grayFrame;
-Rect faceRect,l_eyeRect,r_eyeRect,mouthRect;
+Rect faceRect,l_eyeRect,r_eyeRect,mouthRect,noseRect;
 VideoCapture cap;
 
 
@@ -125,9 +130,16 @@ bool detectFeatures()
 
 
 
+	noseDetector.setOptions(CV_HAAR_SCALE_IMAGE);
+	det_fet = det_fet && noseDetector.detect(face_roi,roi);
+	noseRect = roi[0]+ *faceRectOffset;
+	roi.clear();
 	// prepare lower face region to search mouth
 
-		cout<<"\ninside face_roi"; cout.flush();
+
+	if(mouthRect.x==0)
+		{
+	cout<<"\ninside face_roi"; cout.flush();
 		int mid_row = face_roi.rows*0.70;
 		int end_row	=	face_roi.rows-1;
 
@@ -139,11 +151,10 @@ bool detectFeatures()
 
 
 	//if face ,2 eyes and mouth detected in lower face region
+
 	det_fet = det_fet && mouthDetector.detect(lower_face,roi);
-
-
 	mouthRect=roi[0]+ *lowerFaceOffset;
-
+	}
 	}
 /*det_fet = det_fet &&  l_eyeRect.x < mouthRect.x &&
 					  mouthRect.x < r_eyeRect.x+r_eyeRect.width;*/
@@ -218,7 +229,7 @@ vector<RotatedRect>  trackFeatures(){
 int main()
 {
 	vector<RotatedRect> ftrackingRects; //feature tracking rects
-
+double mouth_height;
 
 
 	if(!initAll())
@@ -231,7 +242,7 @@ int main()
 	{
 
 
-		if(!fet_det)
+		if(true)
 		{
 
 			fet_det	=	detectFeatures();
@@ -242,15 +253,32 @@ int main()
 						startTrackers();
 					}
 
+			if(fet_det)
+			{
+
+				double l_eyeCenter=l_eyeRect.x+l_eyeRect.width*0.5;
+				double r_eyeCenter=r_eyeRect.x+r_eyeRect.width*0.5;
+				double mouth_y = noseRect.y+noseRect.height+10;
+				mouthRect.x=l_eyeCenter;
+				mouthRect.y=mouth_y;
+
+				mouthRect.width=norm(r_eyeCenter-l_eyeCenter);
+				mouth_height=500;
+
+			}
+
 			displayFeatures(videoFrame,faceRect,CV_RGB(255,0,0));
 			displayFeatures(videoFrame,l_eyeRect,CV_RGB(0,255,0));
 			displayFeatures(videoFrame,r_eyeRect,CV_RGB(0,255,0));
 			displayFeatures(videoFrame,mouthRect,CV_RGB(0,0,255));
+			displayFeatures(videoFrame,noseRect,CV_RGB(0,0,0));
+
+
 
 			faceRect.height  = faceRect.width=0;
 			l_eyeRect.height = l_eyeRect.width=0;
 			r_eyeRect.height = r_eyeRect.width=0;
-			mouthRect.height = mouthRect.width=0;
+			//mouthRect.height = mouthRect.width=0;
 
 
 		}
@@ -260,7 +288,7 @@ int main()
 
 		capNextFrame();
 
-		if(fet_det)
+		if(!fet_det & false)
 		{
 			try{
 			ftrackingRects=trackFeatures();
